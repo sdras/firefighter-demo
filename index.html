@@ -133,21 +133,17 @@
         return {
           status: '',
           offline: false,
-          syncInfo: {
-            registered: '',
-            fired: ''
-          },
           typesOfRequest: ['enroute', 'on scene', 'water', 'backup', 'clear returning', 'get details', 'available']
         }
       },
       methods: {
         isOnline() {
           if (navigator.onLine) {
-            this.status = 'Online. Clear to send.'
+            this.status = `Online. Clear to send.`
             this.offline = false
           }
           else {
-            this.status = 'Offline. Any requests made will be queued and synced as soon as you are connected.'
+            this.status = `Offline. But don't worry, your requests will still be processed soon as you are connected.`
             this.offline = true
           }
         },
@@ -169,9 +165,6 @@
           else {
             console.log('Service Worker functionality not supported.');
           }
-        },
-        message(event) {
-          console.log(event)
         }
       }
     })
