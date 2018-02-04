@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Basic BackgroundSync Example</title>
+  <title>Firefighter App Offline</title>
   <style>
     html,
     body {
@@ -38,9 +38,11 @@
       box-shadow: inset 0 0 0 1px hsla(0, 0%, 0%, .1),
       inset 0 -.3em 0 hsla(0, 0%, 0%, .25),
       0 .3em .3em hsla(0, 0%, 0%, .05);
-      text-shadow: 0 1px 1px hsla(0, 0%, 100%, .25);
+      font-weight: bold;
+      text-shadow: 0 1px 1px rgba(255, 255, 255, 0.3);
       transition: 0.2s all ease;
       transform: translate3d(0, 0, 0);
+
     }
 
     button:active {
@@ -51,11 +53,53 @@
       padding-bottom: .5em;
     }
 
+    .green,
+    .enroute,
+    .status {
+      background: #19a974;
+    }
+
+    .blue,
+    .water {
+      background: #357edd
+    }
+
+    .yellow,
+    .clear {
+      background: #ffde37;
+    }
+
+    .purple,
+    .details {
+      background: #a463f2;
+    }
+
+    .orange {
+      background: #ff6300;
+    }
+
+    .red,
+    .scene {
+      background: #fb2a34;
+    }
+
+    .dark-red,
+    .backup {
+      background: #e7040f;
+    }
+
+    .light-blue,
+    .available {
+      background: #96ccff;
+    }
 
     .status {
-      background: green;
       padding: 2px 10px;
       text-align: center;
+    }
+
+    .status p {
+      margin: 7px 0;
     }
 
     .sync-info {
@@ -70,20 +114,17 @@
 
 <body>
   <div id="app">
-    <div class="status">
+    <div :class="[{ red: offline }]" class="status">
       <p>{{ status }}</p>
     </div>
     <div class="button-area">
-      <button @click="requestButton(type)" v-for="type in typesOfRequest">
+      <button @click="requestButton(type)" v-for="type in typesOfRequest" :class="type">
         {{ type }}
       </button>
     </div>
-    <div class="sync-info" v-if="syncInfo.registered">
-      <p>{{ syncInfo.registered }}</p>
-    </div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.13/vue.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.13/vue.min.js"></script>
 
   <script>
     var vm = new Vue({
@@ -91,20 +132,23 @@
       data() {
         return {
           status: '',
+          offline: false,
           syncInfo: {
             registered: '',
             fired: ''
           },
-          typesOfRequest: ['water', 'backup', 'enroute', 'on scene', 'clear returning', 'get details', 'available']
+          typesOfRequest: ['enroute', 'on scene', 'water', 'backup', 'clear returning', 'get details', 'available']
         }
       },
       methods: {
         isOnline() {
           if (navigator.onLine) {
-            this.status = 'Online. Clear to send.';
+            this.status = 'Online. Clear to send.'
+            this.offline = false
           }
           else {
-            this.status = 'Offline. Any requests made will be queued and synced as soon as you are connected.';
+            this.status = 'Offline. Any requests made will be queued and synced as soon as you are connected.'
+            this.offline = true
           }
         },
         requestButton(type) {
@@ -114,7 +158,7 @@
               return navigator.serviceWorker.ready;
             }).then((registration) => {
               registration.sync.register(`request-${type}`).then(() => {
-                this.syncInfo.registered = 'sync registered'
+                console.log('%c sync registered', 'font-size: 16px; background: #e27403; color: #ffffff; border-radius: 5px; padding: 5px 25px 5px 10px; line-height: 30px;');
               }).catch(function (error) {
                 console.log('Unable to fetch resources.');
               });
@@ -135,10 +179,6 @@
     window.addEventListener('online', vm.isOnline);
     window.addEventListener('offline', vm.isOnline);
     vm.isOnline();
-
-    navigator.serviceWorker.addEventListener('message', event => {
-      console.log(event.data.msg);
-    });
 
   </script>
 </body>
