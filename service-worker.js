@@ -35,6 +35,15 @@ const fetchResource = resource => {
         `${styles} background: #137752; color: #9eebcf;`
       )
       console.log(text)
+
+      const message = {
+        response: text.status,
+        resource: resource
+      }
+
+      self.clients
+        .matchAll()
+        .then(all => all.map(client => client.postMessage(message)))
     })
     .catch(error => {
       console.log('Request failed', error)

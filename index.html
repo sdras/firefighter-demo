@@ -42,7 +42,11 @@
       text-shadow: 0 1px 1px rgba(255, 255, 255, 0.3);
       transition: 0.2s all ease;
       transform: translate3d(0, 0, 0);
+    }
 
+    button:focus {
+      outline: 1px dashed #666;
+      border-radius: 20px;
     }
 
     button:active {
@@ -61,7 +65,7 @@
 
     .blue,
     .water {
-      background: #357edd
+      background: #659ce4;
     }
 
     .yellow,
@@ -102,11 +106,28 @@
       margin: 7px 0;
     }
 
-    .sync-info {
+    .info {
       margin: 50px auto 0;
       width: 60%;
       padding: 10px;
-      border: 1px solid #666;
+      border: 1px solid #555;
+    }
+
+    .info p {
+      padding: 10px;
+      margin: 0;
+      border-bottom: 1px solid #444;
+      color: #ccc;
+      letter-spacing: 0.03em;
+    }
+
+    .info p span {
+      color: white;
+      text-transform: uppercase;
+    }
+
+    .info p:last-child {
+      border-bottom: 0;
     }
   </style>
   <link href="https://fonts.googleapis.com/css?family=Assistant:400,700" rel="stylesheet">
@@ -122,19 +143,24 @@
         {{ type }}
       </button>
     </div>
+    <div v-if="responseSuccess" class="info">
+      <p v-for="item in messageQueue" v-html="item"></p>
+    </div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.13/vue.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.13/vue.js"></script>
 
   <script>
+    Vue.config.devtools = true;
+
     var vm = new Vue({
       el: '#app',
-      data() {
-        return {
-          status: '',
-          offline: false,
-          typesOfRequest: ['enroute', 'on scene', 'water', 'backup', 'clear returning', 'get details', 'available']
-        }
+      data: {
+        status: '',
+        offline: false,
+        responseSuccess: false,
+        messageQueue: [],
+        typesOfRequest: ['enroute', 'on scene', 'water', 'backup', 'clear returning', 'get details', 'available']
       },
       methods: {
         isOnline() {
@@ -145,6 +171,12 @@
           else {
             this.status = `Offline. But don't worry, your requests will still be processed soon as you are connected.`
             this.offline = true
+          }
+        },
+        updateRequest(response, type) {
+          if (response === 200) {
+            this.responseSuccess = true
+            this.messageQueue.push(`You successfully sent a message: <span>${type}</span>`)
           }
         },
         requestButton(type) {
@@ -172,6 +204,10 @@
     window.addEventListener('online', vm.isOnline);
     window.addEventListener('offline', vm.isOnline);
     vm.isOnline();
+
+    navigator.serviceWorker.addEventListener('message', function handler(event) {
+      vm.updateRequest(event.data.response, event.data.resource)
+    });
 
   </script>
 </body>
