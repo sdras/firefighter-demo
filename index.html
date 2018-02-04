@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Basic BackgroundSync Example</title>
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Assistant', sans-serif;
+      background: #222;
+      color: white;
+    }
+
+    .button-area {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      align-items: stretch;
+      flex-direction: row;
+      margin-top: 50px;
+    }
+
+    button {
+      height: 100px;
+      display: inline-block;
+      border-radius: 20px;
+      background: red;
+      margin: 5px;
+      width: 11%;
+      cursor: pointer;
+      font-size: 16px;
+      text-transform: uppercase;
+      border: none;
+      letter-spacing: 0.03em;
+    }
+
+    .status {
+      background: green;
+      padding: 2px 10px;
+      text-align: center;
+    }
+
+    .sync-info {
+      margin: 50px auto 0;
+      width: 60%;
+      padding: 10px;
+      border: 1px solid #666;
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css?family=Assistant:400,700" rel="stylesheet">
+</head>
+
+<body>
+  <div id="app">
+    <div class="status">
+      <p>{{ status }}</p>
+    </div>
+    <div class="button-area">
+      <button @click="requestButton(type)" v-for="type in typesOfRequest">
+        {{ type }}
+      </button>
+    </div>
+    <div class="sync-info" v-if="syncInfo.registered">
+      <p>{{ syncInfo.registered }}</p>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.13/vue.js"></script>
+
+  <script>
+    var vm = new Vue({
+      el: '#app',
+      data() {
+        return {
+          status: '',
+          syncInfo: {
+            registered: '',
+            fired: ''
+          },
+          typesOfRequest: ['water', 'backup', 'enroute', 'on scene', 'clear returning', 'get details', 'available']
+        }
+      },
+      methods: {
+        isOnline() {
+          if (navigator.onLine) {
+            this.status = 'Online. Clear to send.';
+          }
+          else {
+            this.status = 'Offline. Any requests made will be queued and synced as soon as you are connected.';
+          }
+        },
+        requestButton(type) {
+          var vueThis = this
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./service-worker.js').then((registration) => {
+              return navigator.serviceWorker.ready;
+            }).then((registration) => {
+              registration.sync.register(`request-${type}`).then(() => {
+                this.syncInfo.registered = 'sync registered'
+              }).catch(function (error) {
+                console.log('Unable to fetch resources.');
+              });
+            }).catch(function (error) {
+              console.log('Unable to register Service Worker.');
+            });
+          }
+          else {
+            console.log('Service Worker functionality not supported.');
+          }
+        },
+        message(event) {
+          console.log(event)
+        }
+      }
+    })
+
+    window.addEventListener('online', vm.isOnline);
+    window.addEventListener('offline', vm.isOnline);
+    vm.isOnline();
+
+  </script>
+</body>
+
+</html>
